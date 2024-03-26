@@ -16,4 +16,13 @@ router.post('/newUser',(req,res)=>{
         .catch(err => res.status(500).send(err))
 })
 
+
+// router.post('/inputMemo/:userId',(req,res)=>{
+//     const userId = req.params.userId;
+    
+//     Memo.updateByMemos(userId,req.body)
+//         .then(memo => res.send(memo))
+//         .catch(err => res.status(500).send(err));
+// })
+
 module.exports = router;
