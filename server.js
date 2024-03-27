@@ -1,29 +1,42 @@
-require('dotenv').config();
-// DEPENDENCIES
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+  require('dotenv').config();
+  const cors = require('cors');
+  const express = require('express');
+  const mongoose = require('mongoose');
+  const bodyParser = require('body-parser');
+  const { createProxyMiddleware } = require('http-proxy-middleware');
 
-const app = express();
-const port = process.env.PORT || 4500;
+  const app = express();
 
-// Static File Service
-app.use(express.static('public'));
-// Body-parser
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+  const port = process.env.PORT || 4500;
 
-// Node의 native Promise 사용
-mongoose.Promise = global.Promise;
+  app.use(cors({
+    origin: "*",                // 출처 허용 옵션
+    credentials: true,          // 응답 헤더에 Access-Control-Allow-Credentials 추가
+    optionsSuccessStatus: 200,  // 응답 상태 200으로 설정
+  }))
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Successfully connected to mongodb'))
-  .catch(e => console.error(e));
+  // Static File Service
+  app.use(express.static('public'));
+  // Body-parser
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+
+  // Node의 native Promise 사용
+  mongoose.Promise = global.Promise;
+
+  // Connect to MongoDB
+  mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Successfully connected to mongodb'))
+    .catch(e => console.error(e));
+
+    // app.use('/api', createProxyMiddleware({
+    //   target: 'http://localhost:3000', // 프록시할 대상 서버의 주소
+    //   changeOrigin: true, // 대상 서버 구성에 따라 호스트 헤더가 변경되도록 설정
+    // }));
 
 
-// ROUTERS
-app.use('/todos', require('./routes/todos'));
-app.use('/memos', require('./routes/memos'));
+  // ROUTERS
+  app.use('/todos', require('./routes/todos'));
+  app.use('/memos', require('./routes/memos'));
 
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+  app.listen(port, () => console.log(`Server listening on port ${port}`));
