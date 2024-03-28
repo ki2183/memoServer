@@ -3,17 +3,25 @@
   const express = require('express');
   const mongoose = require('mongoose');
   const bodyParser = require('body-parser');
+  const jwt = require('jsonwebtoken');
   const { createProxyMiddleware } = require('http-proxy-middleware');
 
   const app = express();
 
   const port = process.env.PORT || 4500;
 
-  app.use(cors({
-    origin: "*",                // 출처 허용 옵션
-    credentials: true,          // 응답 헤더에 Access-Control-Allow-Credentials 추가
-    optionsSuccessStatus: 200,  // 응답 상태 200으로 설정
-  }))
+  const corsOptions = {
+    origin: 'http://localhost:3000', // 여기에 허용하려는 출처 주소를 지정합니다.
+    credentials: true,
+    optionsSuccessStatus: 200
+  };
+
+  app.use(cors(corsOptions));
+  // app.use(cors({
+  //   origin: "*",                
+  //   credentials: true,          
+  //   optionsSuccessStatus: 200,  
+  // }))
 
   // Static File Service
   app.use(express.static('public'));

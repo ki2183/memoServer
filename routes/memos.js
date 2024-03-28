@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const Memo = require('../models/memo')
+const jwt = require('jsonwebtoken')
 
 router.get('/',(req,res)=>{
     Memo.findAll()
@@ -44,6 +45,16 @@ router.post('/findMemo',(req,res)=>{
 router.get('/test',(req,res)=>{
     const test = "test"
     res.send(test)
+})
+
+router.post('/tokenTest',(req,res) => {
+    const token = jwt.sign({ userId:"test" }, 'secret_key');
+    res.json({ token });
+})
+
+router.get('login',(req,res)=>{
+    const {userID,password} = req.body
+
 })
 
 router.post('/checkId',(req,res)=>{

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt')
 
 const memoSchema = new mongoose.Schema(
     {
@@ -57,6 +57,9 @@ memoSchema.statics.findByMemos = function (userId, memoId){
         {memos:{_id:memoId}}
     )
 };
+memoSchema.statics.loginMemos = function (userId,password){
+
+}
 
 module.exports = mongoose.model('Memo', memoSchema)
 
