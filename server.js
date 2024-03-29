@@ -16,12 +16,12 @@
     optionsSuccessStatus: 200
   };
 
-  app.use(cors(corsOptions));
-  // app.use(cors({
-  //   origin: "*",                
-  //   credentials: true,          
-  //   optionsSuccessStatus: 200,  
-  // }))
+  // app.use(cors(corsOptions));
+  app.use(cors({
+    origin: "*",                
+    credentials: true,          
+    optionsSuccessStatus: 200,  
+  }))
 
   // Static File Service
   app.use(express.static('public'));

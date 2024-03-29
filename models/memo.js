@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 const memoSchema = new mongoose.Schema(
     {
@@ -57,8 +59,31 @@ memoSchema.statics.findByMemos = function (userId, memoId){
         {memos:{_id:memoId}}
     )
 };
-memoSchema.statics.loginMemos = function (userId,password){
 
+memoSchema.statics.loginMemos = async function (userId,password_){
+    const userdto = await this.find({user_id:userId})
+    const limit = await check_passwords(password_,userdto[0].password)
+
+    if(userdto && limit){
+        const user = userdto[0]        
+        try{
+            const token = jwt.sign({ userId:user.user_id }, process.env.secretKey)
+            const dto = {
+                token:token,
+                _id:user._id.toString()
+            }
+            return(dto)
+        }catch(err){
+            console.log(err)
+            return null
+        }
+    } 
+
+    return null
+}
+
+memoSchema.statics.getUserInfo = function (_id){
+    return this.find({_id:_id})
 }
 
 module.exports = mongoose.model('Memo', memoSchema)
@@ -76,3 +101,16 @@ const hash_pwd = (pwd) =>{
         });
     });
 }
+
+const check_passwords = (password, hashedPassword) => {
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(password, hashedPassword, (err, result) => {
+            if (err) {
+                console.error('비밀번호 확인 오류:', err);
+                reject(err);
+            } else {
+                resolve(result); // 일치하면 true, 불일치하면 false 반환
+            }
+        });
+    });
+};
