@@ -58,18 +58,41 @@ router.post('/getUserInfo',(req,res)=>{
         console.log(err)
         res.send('어려운')
     })
-
-    // Memo.getUserInfo(_id)
-    // .then(userInfo => {
-    //     delete userInfo.password
-    //     res.send(userInfo)
-    // })
-    // .catch(err=> res.send('정보를 찾을 수가 없음'))
 })
 
 router.get('/test',(req,res)=>{
     const test = "test"
     res.send(test)
+})
+
+router.post('/userMemoList',(req,res)=>{
+    const {_id,token} = req.body
+    const requestTimeout = 10000 //8초 제한
+
+    const getMemoList = new Promise((resolve,reject)=>{
+        verifyToken(token,secret_key)
+        .then((decodedToken)=>{
+            Memo.findByMemoList(_id)
+                .then(info => resolve(info))
+                .catch(err => reject(err))
+        })
+        .catch((err)=>{
+            reject(err)
+        })
+    })
+
+    const timeLimit = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error('Request timeout'));
+        }, requestTimeout);
+    });
+
+    Promise.race([getMemoList,timeLimit])
+    .then((result)=>{
+        res.json(result)
+    }).catch(err=>{
+        res.status(500).send(err);
+    })
 })
 
 router.post('/tokenTest',(req,res) => {

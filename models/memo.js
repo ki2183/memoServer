@@ -3,27 +3,30 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
+const secret_key = process.env.secretKey
+
 const memoSchema = new mongoose.Schema(
     {
-    user_id: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    name: { type: String, required: true },
-    memos: [
-        {
-                memo_id: { type: mongoose.Schema.Types.ObjectId, required: true, default: mongoose.Types.ObjectId },
-                title: { type: String, required: true },
-                text: [{ type: String }],
-                imgs: [
-                    {
-                        url: { type: String, required: true },
-                        idx: { type: Number, required: true },
-                        sort: { type: String, required: true },
-                        rate: { type: [String, Number], required: true },
-                    }
-                ]
-            }
-    ]}, {
-    timestamps: true
+        user_id: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
+        name: { type: String, required: true },
+        memos: [
+            {
+                    memo_id: { type: mongoose.Schema.Types.ObjectId, required: true, default: mongoose.Types.ObjectId },
+                    title: { type: String, required: true },
+                    text: [{ type: String }],
+                    imgs: [
+                        {
+                            url: { type: String, required: true },
+                            idx: { type: Number, required: true },
+                            sort: { type: String, required: true },
+                            rate: { type: [String, Number], required: true },
+                        }
+                    ]
+                }
+        ]},
+    {
+        timestamps: true
     }
 );
 
@@ -60,6 +63,12 @@ memoSchema.statics.findByMemos = function (userId, memoId){
     )
 };
 
+memoSchema.statics.findByMemoList = function (_id){
+    return this.findById(_id)
+    .select('memos')
+    .exec()
+}
+
 memoSchema.statics.loginMemos = async function (userId,password_){
     const userdto = await this.find({user_id:userId})
     const limit = await check_passwords(password_,userdto[0].password)
@@ -67,7 +76,7 @@ memoSchema.statics.loginMemos = async function (userId,password_){
     if(userdto && limit){
         const user = userdto[0]        
         try{
-            const token = jwt.sign({ userId:user.user_id }, process.env.secretKey)
+            const token = jwt.sign({ userId:user.user_id },secret_key)
             const dto = {
                 token:token,
                 _id:user._id.toString()
@@ -87,7 +96,6 @@ memoSchema.statics.getUserInfo = function (_id){
 }
 
 module.exports = mongoose.model('Memo', memoSchema)
-
 
 const hash_pwd = (pwd) =>{
     return new Promise((resolve, reject) => {
