@@ -29,13 +29,13 @@ router.post('/inputMemo/:userId',(req,res)=>{
         .catch(err => res.status(500).send(err));
 })
 
-router.post('/delMemo',(req,res)=>{
-    const {userId,memoId} = req.body;
+// router.post('/delMemo',(req,res)=>{
+//     const {userId,memoId} = req.body;
    
-    Memo.delByMemos(userId,memoId)
-        .then(memo => res.send(memo))
-        .catch(err => res.status(500).send(err));
-})
+//     Memo.delByMemos(userId,memoId)
+//         .then(memo => res.send(memo))
+//         .catch(err => res.status(500).send(err));
+// })
 
 router.post('/findMemo',(req,res)=>{
     const {userId,memoId} = req.body;
@@ -65,35 +65,6 @@ router.get('/test',(req,res)=>{
     res.send(test)
 })
 
-router.post('/userMemoList',(req,res)=>{
-    const {_id,token} = req.body
-    const requestTimeout = 10000 //8초 제한
-
-    const getMemoList = new Promise((resolve,reject)=>{
-        verifyToken(token,secret_key)
-        .then((decodedToken)=>{
-            Memo.findByMemoList(_id)
-                .then(info => resolve(info))
-                .catch(err => reject(err))
-        })
-        .catch((err)=>{
-            reject(err)
-        })
-    })
-
-    const timeLimit = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            reject(new Error('Request timeout'));
-        }, requestTimeout);
-    });
-
-    Promise.race([getMemoList,timeLimit])
-    .then((result)=>{
-        res.json(result)
-    }).catch(err=>{
-        res.status(500).send(err);
-    })
-})
 
 router.post('/tokenTest',(req,res) => {
     const token = jwt.sign({ userId:"test" }, 'secret_key');
@@ -116,6 +87,40 @@ router.post('/checkId',(req,res)=>{
     .catch(err => res.send(true));
 }) // 아이디가 있으면 false 없으면 true
 
+///////////////////////token router////////////////////////
+
+router.post('/pushMemo',(req,res)=>{
+    const {user_id,token,memo} = req.body
+    console.log(req.body)
+    secureRouteWithTimeout(res,Memo.pushByMemo(user_id,memo),token,10000)
+}) //C
+
+
+
+router.post('/updateMemo',(req,res)=>{
+    const {user_id,memo_id,memo,token} = req.body
+    secureRouteWithTimeout(res,Memo.updateByMemo(user_id,memo_id,memo),token,10000)
+}) //U
+
+router.post('/userMemoList',(req,res)=>{
+    const {_id,token} = req.body
+    secureRouteWithTimeout(res,Memo.findByMemoList(_id),token,10000)
+}) //view
+
+// ** 미완 ** //
+
+router.post('/delMemo',(req,res)=>{
+    const {user_id,memo_id,token} = req.body
+
+    Memo.delByMemo(user_id,memo_id)
+        .then(result => res.send(result))
+        .catch(err => res.send(err))
+
+    // secureRouteWithTimeout(res,Memo.updateByMemo(user_id,memo_id,memo),token,10000)
+})
+
+
+///////////////////////token fnc////////////////////////
 
 module.exports = router;
 
@@ -128,4 +133,34 @@ function verifyToken(token, secretKey) { //토큰 유효성 검사
             }
         });
     });
+}
+function secureRouteWithTimeout(res, router_FCN, token, requestTimeout) {
+    const verifyTokenPromise = new Promise((resolve, reject) => {
+        verifyToken(token, secret_key)
+            .then(decodedToken => {
+                resolve(decodedToken);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+
+    const timeLimitPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error('Request timeout'));
+        }, requestTimeout);
+    });
+
+    Promise.all([verifyTokenPromise, router_FCN])
+        .then(([decodedToken, result]) => {
+            res.json(result);
+        })
+        .catch(err => {
+            res.status(500).send(err);
+        });
+
+    Promise.race([verifyTokenPromise, timeLimitPromise])
+        .catch(err => {
+            res.status(500).send(err);
+        });
 }

@@ -17,6 +17,7 @@ const memoSchema = new mongoose.Schema(
                     text: [{ type: String }],
                     imgs: [
                         {
+                            _id:false,
                             url: { type: String, required: true },
                             idx: { type: Number, required: true },
                             sort: { type: String, required: true },
@@ -47,15 +48,15 @@ memoSchema.statics.userId_check = function(userId){
 memoSchema.statics.updateByMemos = function (userId, payload){
     return this.findOneAndUpdate({ user_id: userId }, { $push: { memos: payload } }, { new: true })
 }
-
-memoSchema.statics.delByMemos = function (userId, memoId){
+/////////////////////////////
+memoSchema.statics.delByMemo = function(user_id, memo_id) {
     return this.findOneAndUpdate(
-        { user_id: userId },
-        { $pull : { memos: { _id: memoId } } },
-        { new: true }
-    );
+        {_id:user_id},
+        { $pull:{ memos: {_id:memo_id} } },
+        {new:true}
+    )
 };
-
+/////////////////////////////
 memoSchema.statics.findByMemos = function (userId, memoId){
     return this.find(
         {user_id:userId},
@@ -63,10 +64,37 @@ memoSchema.statics.findByMemos = function (userId, memoId){
     )
 };
 
+memoSchema.statics.pushByMemo = function (user_id,payload){
+    return this.find(
+        { _id:user_id},
+        { $push: {memos: payload} },
+        {new:true}
+    )
+};
+
 memoSchema.statics.findByMemoList = function (_id){
     return this.findById(_id)
     .select('memos')
     .exec()
+}
+memoSchema.statics.updateByMemo = async function(user_id,memo_id,payload){
+
+    return this.findOneAndUpdate(
+        {
+            _id:user_id,
+            "memos._id":memo_id
+        },
+        {
+            $set:{
+                'memos.$.title': payload.title,
+                'memos.$.text': payload.text,
+                'memos.$.imgs': payload.imgs
+            }
+        },
+        {
+            new:true
+        }
+    )
 }
 
 memoSchema.statics.loginMemos = async function (userId,password_){
