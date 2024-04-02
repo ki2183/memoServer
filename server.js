@@ -38,7 +38,6 @@
     .catch(e => console.error(e));
 
   // ROUTERS
-  app.use('/todos', require('./routes/todos'));
   app.use('/memos', require('./routes/memos'));
 
   app.listen(port, () => console.log(`Server listening on port ${port}`));

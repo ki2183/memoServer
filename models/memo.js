@@ -31,7 +31,7 @@ const memoSchema = new mongoose.Schema(
     }
 );
 
-memoSchema.statics.create = async function (payload) {
+memoSchema.statics.createUser = async function (payload) {
     const memo = new this(payload);
     memo.password = await hash_pwd(payload.password)
     return memo.save();
@@ -48,35 +48,65 @@ memoSchema.statics.userId_check = function(userId){
 memoSchema.statics.updateByMemos = function (userId, payload){
     return this.findOneAndUpdate({ user_id: userId }, { $push: { memos: payload } }, { new: true })
 }
-/////////////////////////////
+////////////////////////  CRUD ////////////////////////////
+
+memoSchema.statics.pushByMemo = function (user_id,payload){
+    return this.findOneAndUpdate(
+        { _id:user_id},
+        { $push: {memos: payload} },
+        {new:true}
+    )
+} //C
+
+memoSchema.statics.findByMemoList = function (_id){
+    return this.findById(_id)
+    .select('memos')
+    .exec()
+} //R _list
+
+memoSchema.statics.findByMemo = function (user_id,memo_id){
+    return this.findOne({
+        _id:user_id,
+        "memos._id":memo_id
+    },{
+        "memos.$":1
+    })
+    .exec()
+} //R
+
+memoSchema.statics.updateByMemo = async function(user_id,memo_id,payload){
+
+    return this.findOneAndUpdate(
+        {
+            _id:user_id,
+            "memos._id":memo_id
+        },
+        {
+            $set:{
+                'memos.$.title': payload.title,
+                'memos.$.text': payload.text,
+                'memos.$.imgs': payload.imgs
+            } 
+        },
+        {
+            new:true
+        }
+    )
+} // U
+
 memoSchema.statics.delByMemo = function(user_id, memo_id) {
     return this.findOneAndUpdate(
         {_id:user_id},
         { $pull:{ memos: {_id:memo_id} } },
         {new:true}
     )
-};
-/////////////////////////////
-memoSchema.statics.findByMemos = function (userId, memoId){
-    return this.find(
-        {user_id:userId},
-        {memos:{_id:memoId}}
-    )
-};
+} //D
 
-memoSchema.statics.pushByMemo = function (user_id,payload){
-    return this.find(
-        { _id:user_id},
-        { $push: {memos: payload} },
-        {new:true}
-    )
-};
 
-memoSchema.statics.findByMemoList = function (_id){
-    return this.findById(_id)
-    .select('memos')
-    .exec()
-}
+
+
+
+
 memoSchema.statics.updateByMemo = async function(user_id,memo_id,payload){
 
     return this.findOneAndUpdate(
@@ -96,7 +126,7 @@ memoSchema.statics.updateByMemo = async function(user_id,memo_id,payload){
         }
     )
 }
-
+////////////////////////////////////////////////////
 memoSchema.statics.loginMemos = async function (userId,password_){
     const userdto = await this.find({user_id:userId})
     const limit = await check_passwords(password_,userdto[0].password)

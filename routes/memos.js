@@ -1,4 +1,5 @@
 const router = require('express').Router()
+const { errorMonitor } = require('stream')
 const Memo = require('../models/memo')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
@@ -14,36 +15,6 @@ router.get('/',(req,res)=>{
     .catch(err => res.status(500).send(err))
 })
 
-router.post('/newUser',(req,res)=>{
-    Memo.create(req.body)
-        .then(memo => res.send(memo))
-        .catch(err => res.status(500).send(err))
-})
-
-
-router.post('/inputMemo/:userId',(req,res)=>{
-    const userId = req.params.userId;
-    
-    Memo.updateByMemos(userId,req.body)
-        .then(memo => res.send(memo))
-        .catch(err => res.status(500).send(err));
-})
-
-// router.post('/delMemo',(req,res)=>{
-//     const {userId,memoId} = req.body;
-   
-//     Memo.delByMemos(userId,memoId)
-//         .then(memo => res.send(memo))
-//         .catch(err => res.status(500).send(err));
-// })
-
-router.post('/findMemo',(req,res)=>{
-    const {userId,memoId} = req.body;
-   
-    Memo.findByMemos(userId,memoId)
-        .then(memo => res.send(memo))
-        .catch(err => res.status(500).send(err));
-})
 
 router.post('/getUserInfo',(req,res)=>{
     const {_id,token} = req.body
@@ -60,20 +31,17 @@ router.post('/getUserInfo',(req,res)=>{
     })
 })
 
-router.get('/test',(req,res)=>{
-    const test = "test"
-    res.send(test)
-})
+////////////////////////user//////////////////////////////
 
-
-router.post('/tokenTest',(req,res) => {
-    const token = jwt.sign({ userId:"test" }, 'secret_key');
-    res.json({ token });
+router.post('/join',(req,res)=>{
+    Memo.createUser(req.body)
+        .then(memo => res.send(memo))
+        .catch(err => res.status(500).send(err))
 })
 
 router.post('/login',(req,res)=>{
     const {userId,password} = req.body
-    console.log(password,userId)
+
     Memo.loginMemos(userId,password)
     .then(info => res.json(info))
     .catch(err => res.status(500).send(err))
@@ -81,8 +49,8 @@ router.post('/login',(req,res)=>{
 
 router.post('/checkId',(req,res)=>{
     const {userId} = req.body
-    console.log(req.body)
-    Memo.userId_check(req.body.userId)
+
+    Memo.userId_check(userId)
     .then(userId => res.send(!(userId.length > 0)))
     .catch(err => res.send(true));
 }) // 아이디가 있으면 false 없으면 true
@@ -91,34 +59,32 @@ router.post('/checkId',(req,res)=>{
 
 router.post('/pushMemo',(req,res)=>{
     const {user_id,token,memo} = req.body
-    console.log(req.body)
     secureRouteWithTimeout(res,Memo.pushByMemo(user_id,memo),token,10000)
 }) //C
 
+router.post('/MemoList',(req,res)=>{
+    const {user_id,token} = req.body
+    secureRouteWithTimeout(res,Memo.findByMemoList(user_id),token,10000)
+}) //R _list
 
+router.post('/viewMemo',(req,res)=>{
+    const {user_id,memo_id,token} = req.body
+
+    Memo.findByMemo(user_id,memo_id)
+        .then(result => res.send(result))
+        .catch(err => res.send(errorMonitor))
+   
+}) //R_byOne
 
 router.post('/updateMemo',(req,res)=>{
     const {user_id,memo_id,memo,token} = req.body
     secureRouteWithTimeout(res,Memo.updateByMemo(user_id,memo_id,memo),token,10000)
 }) //U
 
-router.post('/userMemoList',(req,res)=>{
-    const {_id,token} = req.body
-    secureRouteWithTimeout(res,Memo.findByMemoList(_id),token,10000)
-}) //view
-
-// ** 미완 ** //
-
 router.post('/delMemo',(req,res)=>{
     const {user_id,memo_id,token} = req.body
-
-    Memo.delByMemo(user_id,memo_id)
-        .then(result => res.send(result))
-        .catch(err => res.send(err))
-
-    // secureRouteWithTimeout(res,Memo.updateByMemo(user_id,memo_id,memo),token,10000)
-})
-
+    secureRouteWithTimeout(res,Memo.delByMemo(user_id,memo_id),token,10000)
+}) //D
 
 ///////////////////////token fnc////////////////////////
 
