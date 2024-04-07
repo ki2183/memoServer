@@ -63,7 +63,8 @@ router.post('/pushMemo',(req,res)=>{
 }) //C
 
 router.post('/MemoList',(req,res)=>{
-    const {user_id,token} = req.body
+    const {_id,token} = req.body
+    const user_id = _id
     secureRouteWithTimeout(res,Memo.findByMemoList(user_id),token,10000)
 }) //R _list
 

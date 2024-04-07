@@ -23,12 +23,10 @@ const memoSchema = new mongoose.Schema(
                             sort: { type: String, required: true },
                             rate: { type: [String, Number], required: true },
                         }
-                    ]
-                }
+                    ],
+                    createdAt: { type: Date, default: Date.now }
+            }
         ]},
-    {
-        timestamps: true
-    }
 );
 
 memoSchema.statics.createUser = async function (payload) {
