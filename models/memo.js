@@ -62,6 +62,30 @@ memoSchema.statics.findByMemoList = function (_id){
     .exec()
 } //R _list
 
+memoSchema.statics.findByMemosLength = async function (_id){
+    try{
+        const result = await this.findById(_id).select('memos').exec()
+        return result.memos.length
+    }catch(err){
+        return err
+    }
+}
+
+memoSchema.statics.findByMemoList_test = async function(_id,page){
+    const page_num = 5
+
+    try{
+        const result = await this.findById(_id).select('memos').exec()
+        if (!result) {
+            throw new Error("No memo list found for the given ID");
+        }
+        const result_reverse =  result.memos.reverse().slice(page*page_num,page*page_num+page_num)
+        return result_reverse
+    }catch{
+        return result_reverse
+    }
+}
+
 memoSchema.statics.findByMemo = function (user_id,memo_id){
     return this.findOne({
         _id:user_id,
@@ -101,10 +125,6 @@ memoSchema.statics.delByMemo = function(user_id, memo_id) {
 } //D
 
 
-
-
-
-
 memoSchema.statics.updateByMemo = async function(user_id,memo_id,payload){
 
     return this.findOneAndUpdate(
@@ -132,7 +152,7 @@ memoSchema.statics.loginMemos = async function (userId,password_){
     if(userdto && limit){
         const user = userdto[0]        
         try{
-            const token = jwt.sign({ userId:user.user_id },secret_key)
+            const token = jwt.sign({ userId:user.user_id },secret_key,{ expiresIn: '1h' })
             const dto = {
                 token:token,
                 _id:user._id.toString()

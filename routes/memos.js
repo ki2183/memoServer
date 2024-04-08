@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { errorMonitor } = require('stream')
 const Memo = require('../models/memo')
 const jwt = require('jsonwebtoken')
+const memo = require('../models/memo')
 require('dotenv').config()
 
 const secret_key = process.env.secretKey
@@ -13,22 +14,6 @@ router.get('/',(req,res)=>{
         res.send(memos)
     })
     .catch(err => res.status(500).send(err))
-})
-
-
-router.post('/getUserInfo',(req,res)=>{
-    const {_id,token} = req.body
-    console.log(token)
-    console.log(secret_key)
-    verifyToken(token,secret_key).
-    then(decodedToken=>{
-        console.log('유효한')
-        res.send('유효한')
-    })
-    .catch(err => {
-        console.log(err)
-        res.send('어려운')
-    })
 })
 
 ////////////////////////user//////////////////////////////
@@ -87,6 +72,15 @@ router.post('/delMemo',(req,res)=>{
     secureRouteWithTimeout(res,Memo.delByMemo(user_id,memo_id),token,10000)
 }) //D
 
+router.post('/listPage/:page',(req,res)=>{
+    const {_id,token} = req.body
+    const page = req.params.page
+    secureRouteWithTimeout(res,Memo.findByMemoList_test(_id,page),token,10000)
+})
+router.post('/getPageLength',(req,res)=>{
+    const {_id,token} = req.body
+    secureRouteWithTimeout(res,Memo.findByMemosLength(_id),token,10000)
+})
 ///////////////////////token fnc////////////////////////
 
 module.exports = router;
