@@ -10,21 +10,28 @@
 
   const port = process.env.PORT || 4500;
 
-  const corsOptions = {
-    origin: 'http://localhost:3000', // 여기에 허용하려는 출처 주소를 지정합니다.
-    credentials: true,
-    optionsSuccessStatus: 200
-  };
+  const corsOptions = [
+    {
+        origin: 'http://localhost:3000',
+        credentials: true,
+        optionsSuccessStatus: 200
+    },
+    {
+        origin: 'http://localhost:4500',
+        credentials: true,
+        optionsSuccessStatus: 200
+    },
+];
 
-  // app.use(cors(corsOptions));
-  app.use(cors({
-    origin: "*",                
-    credentials: true,          
-    optionsSuccessStatus: 200,  
-  }))
+app.use(cors(corsOptions));
+  // app.use(cors({
+  //   origin: "*",                
+  //   credentials: true,          
+  //   optionsSuccessStatus: 200,  
+  // }))
 
   // Static File Service
-  app.use(express.static('public'));
+  // app.use(express.static('public'));
   // Body-parser
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
