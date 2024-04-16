@@ -152,7 +152,7 @@ memoSchema.statics.loginMemos = async function (userId,password_){
     if(userdto && limit){
         const user = userdto[0]        
         try{
-            const token = jwt.sign({ userId:user.user_id },secret_key,{ expiresIn: '1h' })
+            const token = jwt.sign({ userId:user.user_id },secret_key,{ expiresIn: '30m' })
             const dto = {
                 token:token,
                 _id:user._id.toString()

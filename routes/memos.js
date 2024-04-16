@@ -9,7 +9,7 @@ const secret_key = process.env.secretKey
 
 ////////////////////////user//////////////////////////////
 router.get('/test',(req,res)=>{
-    res.json('test')
+    res.json('testx')
 })
 
 router.post('/join',(req,res)=>{
@@ -63,20 +63,9 @@ router.post('/delMemo',(req,res)=>{
     secureRouteWithTimeout(res,Memo.delByMemo(user_id,memo_id),token,10000)
 }) //D
 
-// router.post('/listPage/:page',(req,res)=>{
-//     const {_id,token} = req.body
-//     const page = req.params.page
-//     secureRouteWithTimeout(res,Memo.findByMemoList_test(_id,page),token,10000)
-// })
 router.post('/getPageLength',(req,res)=>{
     const {_id,token} = req.body
     secureRouteWithTimeout(res,Memo.findByMemosLength(_id),token,10000)
-})
-router.post('/checkToken',(req,res)=>{
-    const {_id,token} = req.body 
-    verifyToken(token,secret_key)
-        .then(decodedToken=>res.json(true))
-        .catch(err=>res.json(false))
 })
 router.post('/listPaging/:page',(req,res)=>{
     const {_id} = req.body
@@ -87,9 +76,52 @@ router.post('/listPaging/:page',(req,res)=>{
 })
 ///////////////////////token fnc////////////////////////
 
+router.post('/checkToken',(req,res)=>{
+    const {_id,token} = req.body 
+    validateToken(token)
+        .then(result => console.log(result))
+        .catch(err => console.log(false))
+
+    return res.send('')
+    // const timeLimitPromise = new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //         reject(new Error('Request timeout'));
+    //     }, 3000);
+    // });
+
+    // const verifyTokenPromise = new Promise((resolve, reject) => {
+    //     verifyToken(token, secret_key)
+    //         .then(decodedToken => {
+    //             resolve(true);
+    //         })
+    //         .catch(err => {
+    //             reject(false);
+    //         });
+    // });
+
+    // Promise.race([verifyTokenPromise, timeLimitPromise])
+    //     .catch(err => {
+    //         res.send(false);
+    // });
+
+    
+    
+})
+
 module.exports = router;
 
+function validateToken(token){
+    try {
+        jwt.parserBuilder().setSigningKey(secret_key).build().parseClaimsJws(token)
+        return true
+    } catch (en) {
+        // 토큰 파싱에 실패하면 false를 반환합니다.
+        return false
+    }
+}
+
 function verifyToken(token, secretKey) { //토큰 유효성 검사
+    
     return new Promise((resolve, reject) => {
         jwt.verify(token, secretKey, (err, decoded) => {
             if (err) { 
