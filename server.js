@@ -12,27 +12,16 @@
 
   const corsOptions = [
     {
-        origin: 'http://localhost:3000',
+        origin: process.env.serverURL,
         credentials: true,
         optionsSuccessStatus: 200
-    },
-    {
-        origin: 'http://localhost:4500',
-        credentials: true,
-        optionsSuccessStatus: 200
-    },
+    }
 ];
 
 app.use(cors(corsOptions));
-  // app.use(cors({
-  //   origin: "*",                
-  //   credentials: true,          
-  //   optionsSuccessStatus: 200,  
-  // }))
 
   // Static File Service
-  // app.use(express.static('public'));
-  // Body-parser
+
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
 

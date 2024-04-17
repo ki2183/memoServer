@@ -3,6 +3,7 @@ const { errorMonitor } = require('stream')
 const Memo = require('../models/memo')
 const jwt = require('jsonwebtoken')
 const memo = require('../models/memo')
+const receivedToken = 'received-token-from-client';
 require('dotenv').config()
 
 const secret_key = process.env.secretKey
@@ -49,8 +50,9 @@ router.post('/MemoList',(req,res)=>{
 
 router.post('/viewMemo',(req,res)=>{
     const {user_id,memo_id,token} = req.body
-    secureRouteWithTimeout(res,Memo.findByMemo(user_id,memo_id),token,10000)
-   
+    Memo.findByMemo(user_id,memo_id)
+        .then(result => res.json(result))
+        .catch(err => res.json(false))
 }) //R_byOne
 
 router.post('/updateMemo',(req,res)=>{
@@ -60,23 +62,17 @@ router.post('/updateMemo',(req,res)=>{
 
 router.post('/delMemo',(req,res)=>{
     const {user_id,memo_id,token} = req.body
-    secureRouteWithTimeout(res,Memo.delByMemo(user_id,memo_id),token,10000)
+    Memo.delByMemo(user_id,memo_id)
+        .then(result => res.json(result))
+        .catch(err => res.json(err))
+    // secureRouteWithTimeout(res,Memo.delByMemo(user_id,memo_id),token,10000)
 }) //D
 
-// router.post('/listPage/:page',(req,res)=>{
-//     const {_id,token} = req.body
-//     const page = req.params.page
-//     secureRouteWithTimeout(res,Memo.findByMemoList_test(_id,page),token,10000)
-// })
 router.post('/getPageLength',(req,res)=>{
     const {_id,token} = req.body
-    secureRouteWithTimeout(res,Memo.findByMemosLength(_id),token,10000)
-})
-router.post('/checkToken',(req,res)=>{
-    const {_id,token} = req.body 
-    verifyToken(token,secret_key)
-        .then(decodedToken=>res.json(true))
-        .catch(err=>res.json(false))
+    return Memo.findByMemosLength(_id)
+        .then(result => res.send(String(result.length)))
+        .catch(err => res.send(err))
 })
 router.post('/listPaging/:page',(req,res)=>{
     const {_id} = req.body
@@ -87,9 +83,22 @@ router.post('/listPaging/:page',(req,res)=>{
 })
 ///////////////////////token fnc////////////////////////
 
+router.post('/checkToken',(req,res)=>{
+    const {_id,token} = req.body 
+    try {
+        const decoded = jwt.verify(token, secret_key);
+        res.send(typeof decoded === "object")
+      } catch (err) {
+        res.send(false)
+      }
+    
+})
+
 module.exports = router;
 
+
 function verifyToken(token, secretKey) { //토큰 유효성 검사
+    
     return new Promise((resolve, reject) => {
         jwt.verify(token, secretKey, (err, decoded) => {
             if (err) { 

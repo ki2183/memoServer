@@ -65,7 +65,7 @@ memoSchema.statics.findByMemoList = function (_id){
 memoSchema.statics.findByMemosLength = async function (_id){
     try{
         const result = await this.findById(_id).select('memos').exec()
-        return result.memos.length
+        return result.memos
     }catch(err){
         return err
     }
@@ -152,7 +152,7 @@ memoSchema.statics.loginMemos = async function (userId,password_){
     if(userdto && limit){
         const user = userdto[0]        
         try{
-            const token = jwt.sign({ userId:user.user_id },secret_key,{ expiresIn: '1h' })
+            const token = jwt.sign({ userId:user.user_id },secret_key,{ expiresIn: '30m' })
             const dto = {
                 token:token,
                 _id:user._id.toString()
